@@ -11,6 +11,7 @@ from mergekit.merge_methods.generalized_task_arithmetic import (
 )
 from mergekit.merge_methods.karcher import KarcherMerge
 from mergekit.merge_methods.linear import LinearMerge
+from mergekit.merge_methods.muon import MuonMerge
 from mergekit.merge_methods.model_stock import ModelStockMerge
 from mergekit.merge_methods.nuslerp import NuSlerpMerge
 from mergekit.merge_methods.passthrough import PassthroughMerge
@@ -19,6 +20,7 @@ from mergekit.sparsify import SparsificationMethod
 
 STATIC_MERGE_METHODS: List[MergeMethod] = [
     LinearMerge(),
+    MuonMerge(),
     SlerpMerge(),
     NuSlerpMerge(),
     PassthroughMerge(),
