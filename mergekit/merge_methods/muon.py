@@ -39,6 +39,7 @@ class MuonMergeTask(Task[torch.Tensor]):
     gather_tensors: MergeTensorInput
     tensor_parameters: ImmutableMap[ModelReference, ImmutableMap[str, Any]]
     weight_info: WeightInfo
+    use_muon: bool
 
     def uses_accelerator(self) -> bool:
         return True
@@ -89,7 +90,7 @@ class MuonMergeTask(Task[torch.Tensor]):
             delta = current_tensor - prev_tensor
             
             # Apply Muon processing
-            if len(delta.shape) >= 2:
+            if self.use_muon and len(delta.shape) >= 2:
                 delta = muon_process(delta)
             
             # Apply weight
@@ -113,7 +114,9 @@ class MuonMerge(MergeMethod):
         return "Muon Merge"
 
     def parameters(self) -> List[ConfigParameterDef]:
-        return []
+        return [
+            ConfigParameterDef(name="use_muon", required=False, default_value=True)
+        ]
 
     def tensor_parameters(self) -> List[ConfigParameterDef]:
         return [
@@ -130,8 +133,18 @@ class MuonMerge(MergeMethod):
         tensor_parameters: ImmutableMap[ModelReference, ImmutableMap[str, Any]],
         **_kwargs,
     ) -> Task:
+        # ImmutableMap does not support .get(), so we check if key exists or use try-except
+        # However, parameters passed here might be a plain dict or ImmutableMap depending on call site.
+        # Based on error, it is ImmutableMap.
+        # Let's convert to dict if possible or use try/except.
+        
+        use_muon = True
+        if "use_muon" in parameters:
+            use_muon = parameters["use_muon"]
+            
         return MuonMergeTask(
             gather_tensors=tensors,
             tensor_parameters=tensor_parameters,
             weight_info=output_weight,
+            use_muon=use_muon,
         )
